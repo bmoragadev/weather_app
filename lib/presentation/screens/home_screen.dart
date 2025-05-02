@@ -390,7 +390,7 @@ class _WeatherDaySlide extends StatelessWidget {
 
     String timeFormatted = weather == null
         ? ''
-        : DateFormat.Hm().format(weather!.time[minIndex + index]);
+        : DateFormat.Hm().format(weather!.time[minIndex + index - 1]);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
@@ -439,7 +439,7 @@ class _WeatherDaySlide extends StatelessWidget {
                 : SvgPicture.asset(
                     // 'assets/icons/partly_cloudy_day.svg',
                     WeatherCodeIcons.getIcon(
-                        weather!.weatherCode[minIndex + index]),
+                        weather!.weatherCode[minIndex + index - 1]),
                     height: 32,
                   ),
             const Spacer(),
@@ -447,8 +447,8 @@ class _WeatherDaySlide extends StatelessWidget {
                 ? _ShimmerLoading(colors: colors, width: 40, height: 14)
                 : Text(
                     tempUnit == TempUnit.fahrenheit
-                        ? '${Conversor.celsiusToFahrenheit(weather!.temperature[minIndex + index]).toInt()}°F'
-                        : '${weather!.temperature[minIndex + index].toInt()}°C',
+                        ? '${Conversor.celsiusToFahrenheit(weather!.temperature[minIndex + index - 1]).toInt()}°F'
+                        : '${weather!.temperature[minIndex + index - 1].toInt()}°C',
                   ),
 
             //'${weather == null ? '...' : weather!.temperature[minIndex + index].toInt()}${tempUnit == TempUnit.fahrenheit ? '°F' : '°C'}'),

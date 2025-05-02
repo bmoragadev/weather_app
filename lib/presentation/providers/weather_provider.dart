@@ -113,8 +113,6 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
           await weatherRepository.getCurrentWeather(location);
       final weatherWeek = await weatherRepository.getWeekWeather(location);
 
-      TempUnit tempUnit = getTempUnit();
-
       state = state.copyWith(
         isLoading: false,
         weather: currentWeather,
