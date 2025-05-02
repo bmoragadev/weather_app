@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/benjaminmoragarodriguez/Development/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/benjaminmoragarodriguez/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/benjaminmoragarodriguez/Projects/Flutter/weather_app/android/app/.cxx/Debug/5s1g4p6i/x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/benjaminmoragarodriguez/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/benjaminmoragarodriguez/Projects/Flutter/weather_app/android/app/.cxx/Debug/5s1g4p6i/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
