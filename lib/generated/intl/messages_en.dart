@@ -22,16 +22,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-        "about_text": MessageLookupByLibrary.simpleMessage(
-            "SimpleWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures."),
-        "app_name": MessageLookupByLibrary.simpleMessage("SimpleWeather"),
-        "created_by": MessageLookupByLibrary.simpleMessage(
-            "Created by Benjamín Moraga R."),
-        "drawer_about_app":
-            MessageLookupByLibrary.simpleMessage("About this app"),
-        "drawer_config": MessageLookupByLibrary.simpleMessage("Configuration"),
-        "drawer_temperature_unit":
-            MessageLookupByLibrary.simpleMessage("Temperature Unit"),
-        "made_in": MessageLookupByLibrary.simpleMessage("Made in Chile")
-      };
+    "about_text": MessageLookupByLibrary.simpleMessage(
+      "MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.",
+    ),
+    "app_name": MessageLookupByLibrary.simpleMessage("MiniWeather"),
+    "created_by": MessageLookupByLibrary.simpleMessage(
+      "Created by Benjamín Moraga R.",
+    ),
+    "data_from": MessageLookupByLibrary.simpleMessage(
+      "Data provided by WeatherAPI",
+    ),
+    "drawer_about_app": MessageLookupByLibrary.simpleMessage("About this app"),
+    "drawer_config": MessageLookupByLibrary.simpleMessage("Configuration"),
+    "drawer_temperature_unit": MessageLookupByLibrary.simpleMessage(
+      "Temperature Unit",
+    ),
+    "made_in": MessageLookupByLibrary.simpleMessage("Made in Chile"),
+  };
 }

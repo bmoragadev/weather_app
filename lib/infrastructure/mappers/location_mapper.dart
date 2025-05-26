@@ -1,10 +1,10 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:simpleweather/config/helpers/parsing.dart';
+import 'package:miniweather/config/helpers/parsing.dart';
 
 import '../../domain/domain.dart';
 
 class LocationMapper {
-  static Location jsonToEntity(Map<String, dynamic> json) {
+  static Location fromJson(Map<String, dynamic> json) {
     return Location(
       position: Position(
           longitude: Parsing.tryDouble(json["longitude"]),
@@ -21,7 +21,7 @@ class LocationMapper {
     );
   }
 
-  static Map<String, dynamic> entityToJson(Location location) {
+  static Map<String, dynamic> toJson(Location location) {
     return {
       "longitude": location.position.longitude,
       "latitude": location.position.latitude,

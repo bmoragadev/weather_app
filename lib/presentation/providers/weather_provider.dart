@@ -2,15 +2,15 @@ import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miniweather/domain/entities/weather_data.dart';
+import 'package:miniweather/infrastructure/mappers/weather_data_mapper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:simpleweather/config/globals/globals.dart';
-import 'package:simpleweather/domain/domain.dart';
-import 'package:simpleweather/domain/services/geolocation_service.dart';
-import 'package:simpleweather/infrastructure/mappers/location_mapper.dart';
-import 'package:simpleweather/infrastructure/mappers/weather_daily_mapper.dart';
-import 'package:simpleweather/infrastructure/mappers/weather_mapper.dart';
-import 'package:simpleweather/infrastructure/services/geolocation_service_impl.dart';
-import 'package:simpleweather/presentation/providers/weather_repository_provider.dart';
+import 'package:miniweather/config/globals/globals.dart';
+import 'package:miniweather/domain/domain.dart';
+import 'package:miniweather/domain/services/geolocation_service.dart';
+import 'package:miniweather/infrastructure/mappers/location_mapper.dart';
+import 'package:miniweather/infrastructure/services/geolocation_service_impl.dart';
+import 'package:miniweather/presentation/providers/weather_repository_provider.dart';
 
 enum TempUnit { celsius, fahrenheit }
 
@@ -35,16 +35,13 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
   Future<void> saveWeatherData() async {
     SharedPreferences localStorage = App.localStorage;
 
-    String weatherJson = jsonEncode(WeatherMapper.entityToJson(state.weather!));
-    String weatherDailyJson =
-        jsonEncode(WeatherDailyMapper.entityToJson(state.weatherDaily!));
+    String weatherDataJson =
+        jsonEncode(WeatherDataMapper.toJson(state.weatherData!));
     String locationJson =
-        jsonEncode(LocationMapper.entityToJson(state.currentLocation!));
+        jsonEncode(LocationMapper.toJson(state.currentLocation!));
 
-    localStorage.setString("weather", weatherJson);
-    localStorage.setString("weatherDaily", weatherDailyJson);
+    localStorage.setString("weatherData", weatherDataJson);
     localStorage.setString("location", locationJson);
-
     localStorage.setString("tempUnit", state.tempUnit.toString());
   }
 
@@ -52,14 +49,11 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     try {
       SharedPreferences localStorage = App.localStorage;
 
-      String? weatherEncoded = localStorage.getString("weather");
-      String? weatherDailyEncoded = localStorage.getString("weatherDaily");
+      String? weatherDataEncoded = localStorage.getString("weatherData");
       String? locationEncoded = localStorage.getString("location");
       String? tempUnitString = localStorage.getString("tempUnit");
 
-      if (weatherEncoded == null ||
-          weatherDailyEncoded == null ||
-          locationEncoded == null) {
+      if (weatherDataEncoded == null || locationEncoded == null) {
         if (tempUnitString == null) {
           state = state.copyWith(
             tempUnit: TempUnit.celsius,
@@ -68,14 +62,11 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         return;
       }
 
-      Map<String, dynamic> weatherJson = jsonDecode(weatherEncoded);
-      Map<String, dynamic> weatherDailyJson = jsonDecode(weatherDailyEncoded);
+      Map<String, dynamic> weatherDataJson = jsonDecode(weatherDataEncoded);
       Map<String, dynamic> locationJson = jsonDecode(locationEncoded);
 
-      Weather weather = WeatherMapper.jsonToEntity(weatherJson);
-      WeatherDaily weatherDaily =
-          WeatherDailyMapper.jsonToEntity(weatherDailyJson);
-      Location location = LocationMapper.jsonToEntity(locationJson);
+      WeatherData weatherData = WeatherDataMapper.fromJson(weatherDataJson);
+      Location location = LocationMapper.fromJson(locationJson);
 
       TempUnit tempUnit;
       if (tempUnitString == 'TempUnit.fahrenheit') {
@@ -86,8 +77,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
       state = state.copyWith(
         isLoading: false,
-        weather: weather,
-        weatherDaily: weatherDaily,
+        weatherData: weatherData,
         currentLocation: location,
         tempUnit: tempUnit,
       );
@@ -109,14 +99,11 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
       final location = await getCurrentLocation();
       if (location == null) return;
 
-      final currentWeather =
-          await weatherRepository.getCurrentWeather(location);
-      final weatherWeek = await weatherRepository.getWeekWeather(location);
+      final weatherData = await weatherRepository.getWeatherData(location);
 
       state = state.copyWith(
         isLoading: false,
-        weather: currentWeather,
-        weatherDaily: weatherWeek,
+        weatherData: weatherData,
         currentLocation: location,
       );
 
@@ -141,22 +128,48 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     return closestIndex;
   }
 
+  int _findClosestTimeIndex2(List<DateTime> times) {
+    DateTime now = DateTime.now();
+    return times.asMap().entries.reduce((a, b) {
+      final diffA = now.difference(a.value).abs();
+      final diffB = now.difference(b.value).abs();
+      return diffA < diffB ? a : b;
+    }).key;
+  }
+
   int getCurrentTemperature() {
-    if (state.weather == null) return 999;
+    if (state.weatherData == null ||
+        state.weatherData!.daily.isEmpty ||
+        state.weatherData!.daily[0].hourly.isEmpty) {
+      return 999;
+    }
     int index = getCurrentMinIndex();
-    return state.weather!.temperature[index].toInt();
+    return state.weatherData!.daily[0].hourly[index].temperature.toInt();
   }
 
   int getCurrentMinIndex() {
-    if (state.weather == null) return 999;
-    int index = _findClosestTimeIndex(state.weather!.time);
-    return index;
+    if (state.weatherData == null ||
+        state.weatherData!.daily.isEmpty ||
+        state.weatherData!.daily[0].hourly.isEmpty) {
+      return 999;
+    }
+    //int index = _findClosestTimeIndex(state.weather!.time);
+    List<DateTime> time =
+        state.weatherData!.daily[0].hourly.map((h) => h.time).toList();
+    return _findClosestTimeIndex(time);
   }
 
   int getCurrentWeatherCode() {
-    if (state.weather == null) return -1;
+    if (state.weatherData == null ||
+        state.weatherData!.daily.isEmpty ||
+        state.weatherData!.daily[0].hourly.isEmpty) {
+      return -1;
+    }
     int index = getCurrentMinIndex();
-    return state.weather!.weatherCode[index].toInt();
+    if (index < 0 || index >= state.weatherData!.daily[0].hourly.length) {
+      return -1;
+    }
+    return state.weatherData!.daily[0].hourly[index].conditionCode.toInt();
   }
 
   Future<Location?> getCurrentLocation() async {
@@ -215,30 +228,26 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 }
 
 class WeatherState {
-  final Weather? weather;
-  final WeatherDaily? weatherDaily;
+  final WeatherData? weatherData;
   final Location? currentLocation;
   final TempUnit? tempUnit;
   final bool isLoading;
 
   WeatherState({
-    this.weather,
-    this.weatherDaily,
+    this.weatherData,
     this.currentLocation,
     this.tempUnit,
     this.isLoading = true,
   });
 
   WeatherState copyWith({
-    Weather? weather,
-    WeatherDaily? weatherDaily,
+    WeatherData? weatherData,
     Location? currentLocation,
     TempUnit? tempUnit,
     bool? isLoading,
   }) =>
       WeatherState(
-        weather: weather ?? this.weather,
-        weatherDaily: weatherDaily ?? this.weatherDaily,
+        weatherData: weatherData ?? this.weatherData,
         currentLocation: currentLocation ?? this.currentLocation,
         tempUnit: tempUnit ?? this.tempUnit,
         isLoading: isLoading ?? this.isLoading,

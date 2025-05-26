@@ -3,23 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:miniweather/domain/entities/hourly_weather.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:simpleweather/config/constants/weather_code_icons.dart';
-import 'package:simpleweather/config/helpers/conversor.dart';
-import 'package:simpleweather/domain/entities/weather.dart';
-import 'package:simpleweather/generated/l10n.dart';
-import 'package:simpleweather/presentation/providers/weather_provider.dart';
-import 'package:simpleweather/presentation/widgets/custom_radial_gradient.dart';
-import 'package:simpleweather/presentation/widgets/widgets.dart';
+import 'package:miniweather/config/constants/weather_code_icons.dart';
+import 'package:miniweather/config/helpers/conversor.dart';
+import 'package:miniweather/generated/l10n.dart';
+import 'package:miniweather/presentation/providers/weather_provider.dart';
+import 'package:miniweather/presentation/widgets/custom_radial_gradient.dart';
+import 'package:miniweather/presentation/widgets/widgets.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
@@ -160,7 +160,11 @@ class _HomeView extends StatelessWidget {
               textStyle: textStyles,
             ),
             const SizedBox(
-              height: 100,
+              height: 10,
+            ),
+            Text(S.current.data_from),
+            const SizedBox(
+              height: 20,
             ),
           ],
         ),
@@ -215,18 +219,18 @@ class _WeatherWeek extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: 7,
           itemBuilder: (context, index) {
-            String currentDay = currentWeatherState.weatherDaily == null
+            String currentDay = currentWeatherState.weatherData == null
                 ? ''
                 : DateFormat.E()
                     .add_d()
-                    .format(currentWeatherState.weatherDaily!.days[index]);
+                    .format(currentWeatherState.weatherData!.daily[index].date);
 
             return Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
               child: Row(
                 children: [
-                  (currentWeatherState.weatherDaily == null ||
+                  (currentWeatherState.weatherData == null ||
                           currentWeatherState.isLoading)
                       ? Expanded(
                           child: _ShimmerLoading(
@@ -238,7 +242,7 @@ class _WeatherWeek extends ConsumerWidget {
                           ),
                         ),
                   const Spacer(),
-                  (currentWeatherState.weatherDaily == null ||
+                  (currentWeatherState.weatherData == null ||
                           currentWeatherState.isLoading)
                       ? Expanded(
                           child: _ShimmerLoading(
@@ -250,14 +254,14 @@ class _WeatherWeek extends ConsumerWidget {
                           // ),
                           child: SvgPicture.asset(
                             WeatherCodeIcons.getIcon(currentWeatherState
-                                .weatherDaily!.weatherCode[index]
+                                .weatherData!.daily[index].conditionCode
                                 .toInt()),
                             // 'assets/icons/partly_cloudy_day.svg',
                             height: 32,
                           ),
                         ),
                   const Spacer(),
-                  (currentWeatherState.weatherDaily == null ||
+                  (currentWeatherState.weatherData == null ||
                           currentWeatherState.isLoading)
                       ? Expanded(
                           child: _ShimmerLoading(
@@ -277,8 +281,8 @@ class _WeatherWeek extends ConsumerWidget {
                             child: Text(
                               currentWeatherState.tempUnit ==
                                       TempUnit.fahrenheit
-                                  ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherDaily!.minTemperature[index]).toInt()}°F'
-                                  : '${currentWeatherState.weatherDaily!.minTemperature[index].toInt()}°C',
+                                  ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].minTemp).toInt()}°F'
+                                  : '${currentWeatherState.weatherData!.daily[index].minTemp.toInt()}°C',
                               //'${currentWeatherState.weatherDaily!.minTemperature[index].toInt()}${currentWeatherState.tempUnit == TempUnit.fahrenheit ? '°F' : '°C'}',
                               style: textStyle.labelLarge,
                               textAlign: TextAlign.center,
@@ -286,7 +290,7 @@ class _WeatherWeek extends ConsumerWidget {
                           ),
                         ),
                   const Spacer(),
-                  (currentWeatherState.weatherDaily == null ||
+                  (currentWeatherState.weatherData == null ||
                           currentWeatherState.isLoading)
                       ? Expanded(
                           child: _ShimmerLoading(
@@ -306,8 +310,8 @@ class _WeatherWeek extends ConsumerWidget {
                             child: Text(
                               currentWeatherState.tempUnit ==
                                       TempUnit.fahrenheit
-                                  ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherDaily!.maxTemperature[index]).toInt()}°F'
-                                  : '${currentWeatherState.weatherDaily!.maxTemperature[index].toInt()}°C',
+                                  ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].maxTemp).toInt()}°F'
+                                  : '${currentWeatherState.weatherData!.daily[index].maxTemp.toInt()}°C',
                               style: textStyle.labelLarge,
                               textAlign: TextAlign.center,
                             ),
@@ -345,17 +349,34 @@ class _WeatherOnDayByTime extends ConsumerWidget {
     final currentMinIndex =
         ref.watch(weatherProvider.notifier).getCurrentMinIndex();
 
+    final List<HourlyWeather> combinedHourly = [
+      ...currentWeatherState.weatherData?.daily[0].hourly ?? [],
+      ...currentWeatherState.weatherData?.daily[1].hourly ?? []
+    ];
+
+    final maxHourlyItems = combinedHourly.length;
+
+    final validCount = (maxHourlyItems - currentMinIndex + 1).clamp(0, 48);
+
+    if (currentWeatherState.isLoading) {
+      return SizedBox(
+          height: 160,
+          child: Center(
+              child: LoadingAnimationWidget.hexagonDots(
+                  color: colors.primary, size: 48)));
+    }
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
           height: 160,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: 24,
+            itemCount: validCount,
             itemBuilder: (context, index) {
               return _WeatherDaySlide(
                 minIndex: currentMinIndex,
-                weather: currentWeatherState.weather,
+                hourlyData: combinedHourly,
                 isLoading: currentWeatherState.isLoading,
                 tempUnit: currentWeatherState.tempUnit,
                 colors: colors,
@@ -372,14 +393,14 @@ class _WeatherDaySlide extends StatelessWidget {
       {required this.colors,
       required this.index,
       required this.minIndex,
-      required this.weather,
+      required this.hourlyData,
       required this.isLoading,
       required this.tempUnit});
 
   final ColorScheme colors;
   final int index;
   final int minIndex;
-  final Weather? weather;
+  final List<HourlyWeather>? hourlyData;
   final TempUnit? tempUnit;
   final bool isLoading;
 
@@ -388,9 +409,9 @@ class _WeatherDaySlide extends StatelessWidget {
     // DateTime? currentTime =
     //     DateTime.tryParse(weather!.time[minIndex + index] as String);
 
-    String timeFormatted = weather == null
+    String timeFormatted = hourlyData == null
         ? ''
-        : DateFormat.Hm().format(weather!.time[minIndex + index - 1]);
+        : DateFormat.Hm().format(hourlyData![minIndex + index - 1].time);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
@@ -425,11 +446,11 @@ class _WeatherDaySlide extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Spacer(),
-            (weather == null || isLoading)
+            (hourlyData == null || isLoading)
                 ? _ShimmerLoading(colors: colors, width: 40, height: 14)
-                : Text(weather == null ? '...' : timeFormatted),
+                : Text(hourlyData == null ? '...' : timeFormatted),
             const Spacer(),
-            (weather == null || isLoading)
+            (hourlyData == null || isLoading)
                 ? _ShimmerLoading(colors: colors, width: 32, height: 32)
                 // : const Icon(
                 //     Icons.cloudy_snowing,
@@ -439,16 +460,16 @@ class _WeatherDaySlide extends StatelessWidget {
                 : SvgPicture.asset(
                     // 'assets/icons/partly_cloudy_day.svg',
                     WeatherCodeIcons.getIcon(
-                        weather!.weatherCode[minIndex + index - 1]),
+                        hourlyData![minIndex + index - 1].conditionCode),
                     height: 32,
                   ),
             const Spacer(),
-            (weather == null || isLoading)
+            (hourlyData == null || isLoading)
                 ? _ShimmerLoading(colors: colors, width: 40, height: 14)
                 : Text(
                     tempUnit == TempUnit.fahrenheit
-                        ? '${Conversor.celsiusToFahrenheit(weather!.temperature[minIndex + index - 1]).toInt()}°F'
-                        : '${weather!.temperature[minIndex + index - 1].toInt()}°C',
+                        ? '${Conversor.celsiusToFahrenheit(hourlyData![minIndex + index - 1].temperature).toInt()}°F'
+                        : '${hourlyData![minIndex + index - 1].temperature.toInt()}°C',
                   ),
 
             //'${weather == null ? '...' : weather!.temperature[minIndex + index].toInt()}${tempUnit == TempUnit.fahrenheit ? '°F' : '°C'}'),

@@ -18,8 +18,10 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(_current != null,
-        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
+    assert(
+      _current != null,
+      'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.',
+    );
     return _current!;
   }
 
@@ -41,8 +43,10 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(instance != null,
-        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
+    assert(
+      instance != null,
+      'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?',
+    );
     return instance!;
   }
 
@@ -50,14 +54,9 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
-  /// `SimpleWeather`
+  /// `MiniWeather`
   String get app_name {
-    return Intl.message(
-      'SimpleWeather',
-      name: 'app_name',
-      desc: '',
-      args: [],
-    );
+    return Intl.message('MiniWeather', name: 'app_name', desc: '', args: []);
   }
 
   /// `Configuration`
@@ -90,10 +89,10 @@ class S {
     );
   }
 
-  /// `SimpleWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.`
+  /// `MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.`
   String get about_text {
     return Intl.message(
-      'SimpleWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.',
+      'MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.',
       name: 'about_text',
       desc: '',
       args: [],
@@ -112,9 +111,14 @@ class S {
 
   /// `Made in Chile`
   String get made_in {
+    return Intl.message('Made in Chile', name: 'made_in', desc: '', args: []);
+  }
+
+  /// `Data provided by WeatherAPI`
+  String get data_from {
     return Intl.message(
-      'Made in Chile',
-      name: 'made_in',
+      'Data provided by WeatherAPI',
+      name: 'data_from',
       desc: '',
       args: [],
     );
@@ -127,7 +131,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   List<Locale> get supportedLocales {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
-      Locale.fromSubtags(languageCode: 'es', countryCode: 'ES'),
+      Locale.fromSubtags(languageCode: 'es'),
     ];
   }
 

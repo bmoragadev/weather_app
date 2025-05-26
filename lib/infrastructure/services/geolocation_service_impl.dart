@@ -1,6 +1,6 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:simpleweather/domain/services/geolocation_service.dart';
+import 'package:miniweather/domain/services/geolocation_service.dart';
 
 class GeolocationServiceImpl extends GeolocationService {
   @override

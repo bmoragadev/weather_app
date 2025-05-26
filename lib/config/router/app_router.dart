@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:simpleweather/presentation/screens/home_screen.dart';
+import 'package:miniweather/presentation/screens/home_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
