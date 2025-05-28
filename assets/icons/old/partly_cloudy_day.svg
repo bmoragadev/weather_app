@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg height="24" viewBox="0 -960 960 960" width="24" fill="#ffffff" version="1.1" id="svg1"
+    sodipodi:docname="partly_cloudy_day.svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+    xmlns:svg="http://www.w3.org/2000/svg">
+    <defs id="defs1" />
+    <sodipodi:namedview id="namedview1" pagecolor="#505050" bordercolor="#eeeeee" borderopacity="1"
+        inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="0"
+        inkscape:deskcolor="#505050" />
+    <g inkscape:groupmode="layer" id="layer3" inkscape:label="Layer 1">
+        <path
+            d="m 251.3966,-179.31532 c -40.92,0 -75.89333,-14.51333 -104.92,-43.54 -29.02667,-29.02667 -43.54,-64 -43.54,-104.92 0,-39.9 14.12667,-73.97667 42.38,-102.23 28.26,-28.26 62.33667,-42.39 102.23,-42.39 28.66667,0 55.09,7.77 79.27,23.31 24.18,15.54 41.88667,36.64333 53.12,63.31 l 12.69001,29.92 h 32.46 c 24.66667,0 45.34666,8.51333 62.03999,25.54 16.69333,17.02667 25.04,37.87333 25.04,62.54 0,24.66667 -8.57667,45.57667 -25.73,62.73 -17.15333,17.15333 -38.06332,25.73 -62.72999,25.73 z"
+            id="path1-2" sodipodi:insensitive="true" style="display:inline" />
+    </g>
+    <g inkscape:groupmode="layer" id="layer4" inkscape:label="Layer 2">
+        <path
+            d="m 590.15,-289.69 c -4.46,-38.15333 -20.07333,-70.64 -46.84,-97.46 -26.77333,-26.82 -59.36333,-42.48667 -97.77,-47 -17.59333,-33.18 -41.83667,-59.88667 -72.73,-80.12 -30.9,-20.22667 -65.29667,-32.39333 -103.19,-36.5 15.28,-45.07333 42.19,-81.21333 80.73,-108.42 C 388.88333,-686.39667 432.1,-700 480,-700 c 61.02667,0 112.95,21.41 155.77,64.23 42.82,42.82 64.23,94.74333 64.23,155.77 0,39.48667 -9.77,76.12667 -29.31,109.92 -19.54,33.79333 -46.38667,60.59 -80.54,80.39 z M 450,-751.54 v -147.69 h 60 v 147.69 z m 242.92,100.77 -42.15,-42.54 103.92,-105.15 42.77,43.15 z M 751.54,-450 v -60 h 147.69 v 60 z m 3.15,288.08 -103.92,-105.16 42.54,-42.54 105.15,103.93 z m -487.23,-488.46 -105.3,-105.31 43.53,-42 103.93,105.15 z"
+            id="path1" sodipodi:nodetypes="ccccccsssscccccccccccccccccccccccccc" style="fill:#FF9800" />
+    </g>
+</svg>

@@ -1,9 +1,11 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:miniweather/domain/entities/hourly_weather.dart';
+import 'package:miniweather/presentation/providers/permissions/permissions_provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:miniweather/config/constants/weather_code_icons.dart';
 import 'package:miniweather/config/helpers/conversor.dart';
@@ -11,6 +13,8 @@ import 'package:miniweather/generated/l10n.dart';
 import 'package:miniweather/presentation/providers/weather_provider.dart';
 import 'package:miniweather/presentation/widgets/custom_radial_gradient.dart';
 import 'package:miniweather/presentation/widgets/widgets.dart';
+
+import '../../config/helpers/strings.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -117,7 +121,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     applicationName: S.current.app_name,
-                    applicationVersion: '1.0.0',
+                    applicationVersion: '1.1.0',
                     children: [
                       Text(S.current.about_text),
                       const SizedBox(height: 10),
@@ -237,7 +241,7 @@ class _WeatherWeek extends ConsumerWidget {
                               colors: colors, width: 40, height: 14))
                       : Expanded(
                           child: Text(
-                            currentDay,
+                            Strings.capitalize(currentDay),
                             style: textStyle.labelLarge,
                           ),
                         ),
@@ -278,14 +282,17 @@ class _WeatherWeek extends ConsumerWidget {
                                 colors.primaryContainer.withOpacity(0.1),
                               ]),
                             ),
-                            child: Text(
-                              currentWeatherState.tempUnit ==
-                                      TempUnit.fahrenheit
-                                  ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].minTemp).toInt()}°F'
-                                  : '${currentWeatherState.weatherData!.daily[index].minTemp.toInt()}°C',
-                              //'${currentWeatherState.weatherDaily!.minTemperature[index].toInt()}${currentWeatherState.tempUnit == TempUnit.fahrenheit ? '°F' : '°C'}',
-                              style: textStyle.labelLarge,
-                              textAlign: TextAlign.center,
+                            child: FadeInRight(
+                              from: 50,
+                              child: Text(
+                                currentWeatherState.tempUnit ==
+                                        TempUnit.fahrenheit
+                                    ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].minTemp).toInt()}°F'
+                                    : '${currentWeatherState.weatherData!.daily[index].minTemp.toInt()}°C',
+                                //'${currentWeatherState.weatherDaily!.minTemperature[index].toInt()}${currentWeatherState.tempUnit == TempUnit.fahrenheit ? '°F' : '°C'}',
+                                style: textStyle.labelLarge,
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ),
@@ -307,13 +314,16 @@ class _WeatherWeek extends ConsumerWidget {
                                 Colors.orange.withOpacity(0.75)
                               ]),
                             ),
-                            child: Text(
-                              currentWeatherState.tempUnit ==
-                                      TempUnit.fahrenheit
-                                  ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].maxTemp).toInt()}°F'
-                                  : '${currentWeatherState.weatherData!.daily[index].maxTemp.toInt()}°C',
-                              style: textStyle.labelLarge,
-                              textAlign: TextAlign.center,
+                            child: FadeInLeft(
+                              from: 50,
+                              child: Text(
+                                currentWeatherState.tempUnit ==
+                                        TempUnit.fahrenheit
+                                    ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].maxTemp).toInt()}°F'
+                                    : '${currentWeatherState.weatherData!.daily[index].maxTemp.toInt()}°C',
+                                style: textStyle.labelLarge,
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ),
@@ -359,11 +369,14 @@ class _WeatherOnDayByTime extends ConsumerWidget {
     final validCount = (maxHourlyItems - currentMinIndex + 1).clamp(0, 48);
 
     if (currentWeatherState.isLoading) {
-      return SizedBox(
-          height: 160,
-          child: Center(
-              child: LoadingAnimationWidget.hexagonDots(
-                  color: colors.primary, size: 48)));
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+            height: 160,
+            child: Center(
+                child: LoadingAnimationWidget.prograssiveDots(
+                    color: colors.primary, size: 48))),
+      );
     }
 
     return Padding(
@@ -374,13 +387,15 @@ class _WeatherOnDayByTime extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             itemCount: validCount,
             itemBuilder: (context, index) {
-              return _WeatherDaySlide(
-                minIndex: currentMinIndex,
-                hourlyData: combinedHourly,
-                isLoading: currentWeatherState.isLoading,
-                tempUnit: currentWeatherState.tempUnit,
-                colors: colors,
-                index: index,
+              return FadeInUp(
+                child: _WeatherDaySlide(
+                  minIndex: currentMinIndex,
+                  hourlyData: combinedHourly,
+                  isLoading: currentWeatherState.isLoading,
+                  tempUnit: currentWeatherState.tempUnit,
+                  colors: colors,
+                  index: index,
+                ),
               );
             },
           )),
@@ -460,7 +475,8 @@ class _WeatherDaySlide extends StatelessWidget {
                 : SvgPicture.asset(
                     // 'assets/icons/partly_cloudy_day.svg',
                     WeatherCodeIcons.getIcon(
-                        hourlyData![minIndex + index - 1].conditionCode),
+                        hourlyData![minIndex + index - 1].conditionCode,
+                        isDay: hourlyData![minIndex + index - 1].isDay),
                     height: 32,
                   ),
             const Spacer(),
@@ -525,6 +541,11 @@ class _CurrentWeather extends ConsumerWidget {
     final currentWeatherCode =
         ref.watch(weatherProvider.notifier).getCurrentWeatherCode();
 
+    final currentLocationPermission =
+        ref.watch(permissionsProvider).locationGranted;
+
+    final currentIsDay = ref.watch(weatherProvider.notifier).getCurrentIsDay();
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(0),
       child: SizedBox(
@@ -565,9 +586,15 @@ class _CurrentWeather extends ConsumerWidget {
                           alignment: Alignment.topCenter,
                           child: ElevatedButton.icon(
                             onPressed: () async {
+                              if (!currentLocationPermission) {
+                                ref
+                                    .read(permissionsProvider.notifier)
+                                    .requestLocationAccess();
+                                return;
+                              }
                               await ref
                                   .read(weatherProvider.notifier)
-                                  .refreshWeather();
+                                  .forceRefreshWeather();
                             },
                             label: currentWeatherState.isLoading
                                 ? LoadingAnimationWidget.waveDots(
@@ -605,10 +632,13 @@ class _CurrentWeather extends ConsumerWidget {
                               //   color: Colors.orange,
                               //   size: 128,
                               // ),
-                              SvgPicture.asset(
-                                WeatherCodeIcons.getIcon(currentWeatherCode),
-                                // 'assets/icons/partly_cloudy_day.svg',
-                                height: 128,
+                              Tada(
+                                child: SvgPicture.asset(
+                                  WeatherCodeIcons.getIcon(currentWeatherCode,
+                                      isDay: currentIsDay),
+                                  // 'assets/icons/partly_cloudy_day.svg',
+                                  height: 128,
+                                ),
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

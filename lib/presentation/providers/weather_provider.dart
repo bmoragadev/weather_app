@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miniweather/domain/entities/weather_data.dart';
 import 'package:miniweather/infrastructure/mappers/weather_data_mapper.dart';
+import 'package:miniweather/presentation/providers/permissions/permissions_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:miniweather/config/globals/globals.dart';
 import 'package:miniweather/domain/domain.dart';
@@ -25,11 +26,13 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
   final WeatherRepository weatherRepository;
   final GeolocationService geolocationService;
 
+  DateTime? _lastRefresh;
+
   WeatherNotifier({required this.weatherRepository})
       : geolocationService = GeolocationServiceImpl(),
         super(WeatherState()) {
     loadLocalWeather();
-    loadWeather();
+    // loadWeather();
   }
 
   Future<void> saveWeatherData() async {
@@ -42,7 +45,8 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
     localStorage.setString("weatherData", weatherDataJson);
     localStorage.setString("location", locationJson);
-    localStorage.setString("tempUnit", state.tempUnit.toString());
+    localStorage.setString(
+        "tempUnit", (state.tempUnit ?? TempUnit.celsius).toString());
   }
 
   Future<void> loadLocalWeather() async {
@@ -106,7 +110,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         weatherData: weatherData,
         currentLocation: location,
       );
-
+      _lastRefresh = DateTime.now();
       saveWeatherData();
     } catch (e) {
       throw Exception(e);
@@ -128,15 +132,6 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     return closestIndex;
   }
 
-  int _findClosestTimeIndex2(List<DateTime> times) {
-    DateTime now = DateTime.now();
-    return times.asMap().entries.reduce((a, b) {
-      final diffA = now.difference(a.value).abs();
-      final diffB = now.difference(b.value).abs();
-      return diffA < diffB ? a : b;
-    }).key;
-  }
-
   int getCurrentTemperature() {
     if (state.weatherData == null ||
         state.weatherData!.daily.isEmpty ||
@@ -145,6 +140,16 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     }
     int index = getCurrentMinIndex();
     return state.weatherData!.daily[0].hourly[index].temperature.toInt();
+  }
+
+  bool? getCurrentIsDay() {
+    if (state.weatherData == null ||
+        state.weatherData!.daily.isEmpty ||
+        state.weatherData!.daily[0].hourly.isEmpty) {
+      return null;
+    }
+    int index = getCurrentMinIndex();
+    return state.weatherData!.daily[0].hourly[index].isDay;
   }
 
   int getCurrentMinIndex() {
@@ -173,12 +178,12 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
   }
 
   Future<Location?> getCurrentLocation() async {
-    final geolocationPermission =
-        await geolocationService.handleLocationPermission();
-    if (geolocationPermission != 0) {
-      // state = state.copyWith(currentLocation: null, isLoading: true);
-      return null;
-    }
+    // final geolocationPermission =
+    //     await geolocationService.handleLocationPermission();
+    // if (geolocationPermission != 0) {
+    //   // state = state.copyWith(currentLocation: null, isLoading: true);
+    //   return null;
+    // }
 
     final currentPosition = await geolocationService.getCurrentPosition();
     final currentCity =
@@ -191,8 +196,18 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
   }
 
   Future<void> refreshWeather() async {
+    final now = DateTime.now();
+
+    if (_lastRefresh != null && now.difference(_lastRefresh!).inMinutes < 60) {
+      return;
+    }
     state = state.copyWith(isLoading: true);
     loadWeather();
+  }
+
+  Future<void> forceRefreshWeather() async {
+    _lastRefresh = null;
+    await refreshWeather();
   }
 
   TempUnit _loadLocalTempUnit() {
@@ -224,6 +239,10 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     );
 
     saveWeatherData();
+  }
+
+  void setLoading(bool flag) {
+    state = state.copyWith(isLoading: flag);
   }
 }
 
