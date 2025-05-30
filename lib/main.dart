@@ -3,26 +3,32 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:miniweather/config/constants/error_codes.dart';
 import 'package:miniweather/config/globals/globals.dart';
 import 'package:miniweather/config/router/app_router.dart';
 import 'package:miniweather/config/themes/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miniweather/generated/l10n.dart';
-import 'package:miniweather/presentation/providers/app_state_provider.dart';
+import 'package:miniweather/presentation/providers/app_state/app_state_provider.dart';
+import 'package:miniweather/presentation/providers/local_storage/local_storage_provider.dart';
 import 'package:miniweather/presentation/providers/permissions/permissions_provider.dart';
-import 'package:miniweather/presentation/providers/weather_provider.dart';
+import 'package:miniweather/presentation/providers/weather/weather_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await dotenv.load(fileName: ".env");
-  await App.init();
+  // await App.init();
+  final prefs = await SharedPreferences.getInstance();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
   FlutterNativeSplash.remove();
-  runApp(const ProviderScope(
+  runApp(ProviderScope(
+    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    // ignore: prefer_const_constructors
     child: MainApp(),
   ));
 }
@@ -55,18 +61,23 @@ class MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     ref.read(appStateProvider.notifier).update((state) => state);
     if (state == AppLifecycleState.resumed) {
-      await ref.read(permissionsProvider.notifier).checkPermissions();
-      final locationProvider = ref.read(permissionsProvider);
-      if (locationProvider.locationGranted) {
-        ref.read(weatherProvider.notifier).refreshWeather();
-      } else {
-        ref.read(weatherProvider.notifier).setLoading(true);
-      }
+      _handleResume();
     }
     super.didChangeAppLifecycleState(state);
+  }
+
+  Future<void> _handleResume() async {
+    await ref.read(permissionsProvider.notifier).checkPermissions();
+    final locationProvider = ref.read(permissionsProvider);
+
+    if (locationProvider.locationGranted) {
+      await ref.read(weatherProvider.notifier).refreshWeather();
+    } else {
+      ref.read(weatherProvider.notifier).setError(ErrorCode.locationOff);
+    }
   }
 
   @override

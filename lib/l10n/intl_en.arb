@@ -6,5 +6,9 @@
     "about_text":"MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.",
     "created_by":"Created by Benjamín Moraga R.",
     "made_in":"Made in Chile",
-    "data_from":"Data provided by WeatherAPI"
+    "data_from":"Data provided by WeatherAPI",
+    "localization_off_error":"Real-time location permission denied.",
+    "no_internet_error":"No Internet connection.",
+    "no_local_data_error":"No local weather data found.",
+    "open_settings_button":"Open Settings"
 }

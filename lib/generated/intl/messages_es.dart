@@ -39,6 +39,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "drawer_temperature_unit": MessageLookupByLibrary.simpleMessage(
       "Unidad de Temperatura",
     ),
+    "localization_off_error": MessageLookupByLibrary.simpleMessage(
+      "Permiso de ubicación en tiempo real denegado.",
+    ),
     "made_in": MessageLookupByLibrary.simpleMessage("Hecho en Chile"),
+    "no_internet_error": MessageLookupByLibrary.simpleMessage(
+      "Sin conexión a Internet.",
+    ),
+    "no_local_data_error": MessageLookupByLibrary.simpleMessage(
+      "No se encontraron datos meteorológicos locales.",
+    ),
+    "open_settings_button": MessageLookupByLibrary.simpleMessage(
+      "Abrir configuración",
+    ),
   };
 }

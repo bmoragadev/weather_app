@@ -2,81 +2,78 @@ import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miniweather/config/constants/error_codes.dart';
+import 'package:miniweather/config/constants/temp_unit.dart';
 import 'package:miniweather/domain/entities/weather_data.dart';
-import 'package:miniweather/infrastructure/mappers/weather_data_mapper.dart';
-import 'package:miniweather/presentation/providers/permissions/permissions_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:miniweather/config/globals/globals.dart';
+import 'package:miniweather/domain/repositories/local_storage_repository.dart';
+import 'package:miniweather/presentation/providers/local_storage/local_storage_repository_provider.dart';
 import 'package:miniweather/domain/domain.dart';
 import 'package:miniweather/domain/services/geolocation_service.dart';
-import 'package:miniweather/infrastructure/mappers/location_mapper.dart';
+// import 'package:miniweather/infrastructure/mappers/location_mapper.dart';
 import 'package:miniweather/infrastructure/services/geolocation_service_impl.dart';
-import 'package:miniweather/presentation/providers/weather_repository_provider.dart';
-
-enum TempUnit { celsius, fahrenheit }
+import 'package:miniweather/presentation/providers/weather/weather_repository_provider.dart';
 
 final weatherProvider =
     StateNotifierProvider<WeatherNotifier, WeatherState>((ref) {
   final weatherRepository = ref.watch(weatherRepositoryProvider);
+  final localStorageRepository = ref.watch(localStorageRepositoryProvider);
+  final geolocationServiceImpl = GeolocationServiceImpl();
 
-  return WeatherNotifier(weatherRepository: weatherRepository);
+  return WeatherNotifier(
+    weatherRepository: weatherRepository,
+    geolocationService: geolocationServiceImpl,
+    localStorageRepository: localStorageRepository,
+  );
 });
 
 class WeatherNotifier extends StateNotifier<WeatherState> {
   final WeatherRepository weatherRepository;
   final GeolocationService geolocationService;
+  final LocalStorageRepository localStorageRepository;
 
   DateTime? _lastRefresh;
 
-  WeatherNotifier({required this.weatherRepository})
-      : geolocationService = GeolocationServiceImpl(),
-        super(WeatherState()) {
-    loadLocalWeather();
-    // loadWeather();
+  WeatherNotifier(
+      {required this.weatherRepository,
+      required this.geolocationService,
+      required this.localStorageRepository})
+      : super(WeatherState()) {
+    _loadTempUnit();
+    refreshWeather();
   }
 
   Future<void> saveWeatherData() async {
-    SharedPreferences localStorage = App.localStorage;
+    // SharedPreferences localStorage = App.localStorage;
 
-    String weatherDataJson =
-        jsonEncode(WeatherDataMapper.toJson(state.weatherData!));
-    String locationJson =
-        jsonEncode(LocationMapper.toJson(state.currentLocation!));
+    localStorageRepository.saveWeatherData(state.weatherData!);
+    localStorageRepository.saveLocation(state.currentLocation!);
+    localStorageRepository.saveTempUnit(state.tempUnit ?? TempUnit.celsius);
 
-    localStorage.setString("weatherData", weatherDataJson);
-    localStorage.setString("location", locationJson);
-    localStorage.setString(
-        "tempUnit", (state.tempUnit ?? TempUnit.celsius).toString());
+    // String weatherDataJson =
+    //     jsonEncode(WeatherDataMapper.toJson(state.weatherData!));
+    // // String locationJson =
+    // //     jsonEncode(LocationMapper.toJson(state.currentLocation!));
+
+    // localStorage.setString("weatherData", weatherDataJson);
+    // // localStorage.setString("location", locationJson);
+    // localStorage.setString(
+    //     "tempUnit", (state.tempUnit ?? TempUnit.celsius).toString());
   }
 
   Future<void> loadLocalWeather() async {
     try {
-      SharedPreferences localStorage = App.localStorage;
+      WeatherData? weatherData = await localStorageRepository.loadWeatherData();
+      Location? location = await localStorageRepository.loadLocation();
+      TempUnit? tempUnit = await localStorageRepository.loadTempUnit();
 
-      String? weatherDataEncoded = localStorage.getString("weatherData");
-      String? locationEncoded = localStorage.getString("location");
-      String? tempUnitString = localStorage.getString("tempUnit");
-
-      if (weatherDataEncoded == null || locationEncoded == null) {
-        if (tempUnitString == null) {
+      if (weatherData == null || location == null) {
+        if (tempUnit == null) {
           state = state.copyWith(
             tempUnit: TempUnit.celsius,
           );
         }
+        state = state.copyWith(isLoading: false, error: ErrorCode.noLocalData);
         return;
-      }
-
-      Map<String, dynamic> weatherDataJson = jsonDecode(weatherDataEncoded);
-      Map<String, dynamic> locationJson = jsonDecode(locationEncoded);
-
-      WeatherData weatherData = WeatherDataMapper.fromJson(weatherDataJson);
-      Location location = LocationMapper.fromJson(locationJson);
-
-      TempUnit tempUnit;
-      if (tempUnitString == 'TempUnit.fahrenheit') {
-        tempUnit = TempUnit.fahrenheit;
-      } else {
-        tempUnit = TempUnit.celsius;
       }
 
       state = state.copyWith(
@@ -92,16 +89,11 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
   Future<void> loadWeather() async {
     try {
-      var connectivityResult = await Connectivity().checkConnectivity();
-
-      if (connectivityResult.contains(ConnectivityResult.none)) {
-        loadLocalWeather();
-
+      final location = await getCurrentLocation();
+      if (location == null) {
+        state = state.copyWith(isLoading: false, error: ErrorCode.locationOff);
         return;
       }
-
-      final location = await getCurrentLocation();
-      if (location == null) return;
 
       final weatherData = await weatherRepository.getWeatherData(location);
 
@@ -111,7 +103,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         currentLocation: location,
       );
       _lastRefresh = DateTime.now();
-      saveWeatherData();
+      await saveWeatherData();
     } catch (e) {
       throw Exception(e);
     }
@@ -197,12 +189,25 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
   Future<void> refreshWeather() async {
     final now = DateTime.now();
-
     if (_lastRefresh != null && now.difference(_lastRefresh!).inMinutes < 60) {
       return;
     }
-    state = state.copyWith(isLoading: true);
-    loadWeather();
+
+    state = state.copyWith(isLoading: true, error: ErrorCode.none);
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    final hasInternet = !connectivityResult.contains(ConnectivityResult.none);
+
+    if (!hasInternet) {
+      await loadLocalWeather();
+      if (state.error != ErrorCode.noLocalData) {
+        state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
+      }
+      return;
+    }
+
+    // state = state.copyWith(isLoading: true);
+    await loadWeather();
   }
 
   Future<void> forceRefreshWeather() async {
@@ -210,39 +215,28 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     await refreshWeather();
   }
 
-  TempUnit _loadLocalTempUnit() {
+  Future<void> _loadTempUnit() async {
     try {
-      SharedPreferences localStorage = App.localStorage;
-
-      String? tempUnitString = localStorage.getString("tempUnit");
-
-      TempUnit tempUnit;
-      if (tempUnitString == 'fahrenheit') {
-        tempUnit = TempUnit.fahrenheit;
-      } else {
-        tempUnit = TempUnit.celsius;
-      }
-
-      return tempUnit;
+      TempUnit? tempUnitLoaded = await localStorageRepository.loadTempUnit();
+      state = state.copyWith(tempUnit: tempUnitLoaded ?? TempUnit.celsius);
     } catch (e) {
-      throw Exception(e);
+      state = state.copyWith(tempUnit: TempUnit.celsius);
     }
-  }
-
-  TempUnit getTempUnit() {
-    return state.tempUnit ?? _loadLocalTempUnit();
   }
 
   Future<void> setTempUnit(TempUnit tempUnit) async {
     state = state.copyWith(
       tempUnit: tempUnit,
     );
-
-    saveWeatherData();
+    await localStorageRepository.saveTempUnit(tempUnit);
   }
 
   void setLoading(bool flag) {
     state = state.copyWith(isLoading: flag);
+  }
+
+  void setError(ErrorCode errorCode) {
+    state = state.copyWith(error: errorCode);
   }
 }
 
@@ -251,12 +245,14 @@ class WeatherState {
   final Location? currentLocation;
   final TempUnit? tempUnit;
   final bool isLoading;
+  final ErrorCode error;
 
   WeatherState({
     this.weatherData,
     this.currentLocation,
     this.tempUnit,
     this.isLoading = true,
+    this.error = ErrorCode.none,
   });
 
   WeatherState copyWith({
@@ -264,11 +260,13 @@ class WeatherState {
     Location? currentLocation,
     TempUnit? tempUnit,
     bool? isLoading,
+    ErrorCode? error,
   }) =>
       WeatherState(
         weatherData: weatherData ?? this.weatherData,
         currentLocation: currentLocation ?? this.currentLocation,
         tempUnit: tempUnit ?? this.tempUnit,
         isLoading: isLoading ?? this.isLoading,
+        error: error ?? this.error,
       );
 }

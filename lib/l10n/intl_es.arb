@@ -7,5 +7,9 @@
     "about_text": "MiniWeather es un proyecto personal desarrollado en Flutter que ofrece una interfaz sencilla y eficiente para consultar el clima actual. La aplicación también muestra pronósticos por hora y el estado del tiempo para los próximos 7 días, con detalles de temperatura mínima y máxima.",
     "created_by":"Creado por Benjamín Moraga R.",
     "made_in":"Hecho en Chile",
-    "data_from":"Datos proporcionados por WeatherAPI"
+    "data_from":"Datos proporcionados por WeatherAPI",
+    "localization_off_error":"Permiso de ubicación en tiempo real denegado.",
+    "no_internet_error":"Sin conexión a Internet.",
+    "no_local_data_error":"No se encontraron datos meteorológicos locales.",
+    "open_settings_button":"Abrir configuración"
 }

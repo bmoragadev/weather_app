@@ -23,16 +23,16 @@ class LocationMapper {
 
   static Map<String, dynamic> toJson(Location location) {
     return {
-      "longitude": location.position.longitude,
-      "latitude": location.position.latitude,
-      "timestamp": location.position.timestamp.toString(),
-      "accuracy": location.position.accuracy,
-      "altitude": location.position.altitude,
-      "altitudeAccuracy": location.position.altitudeAccuracy,
-      "heading": location.position.heading,
-      "headingAccuracy": location.position.headingAccuracy,
-      "speed": location.position.speed,
-      "speedAccuracy": location.position.speedAccuracy,
+      "longitude": location.position?.longitude ?? 0.0,
+      "latitude": location.position?.latitude ?? 0.0,
+      "timestamp": location.position?.timestamp.toString() ?? "",
+      "accuracy": location.position?.accuracy ?? 0.0,
+      "altitude": location.position?.altitude ?? '.',
+      "altitudeAccuracy": location.position?.altitudeAccuracy ?? 0.0,
+      "heading": location.position?.heading ?? 0.0,
+      "headingAccuracy": location.position?.headingAccuracy ?? 0.0,
+      "speed": location.position?.speed ?? 0.0,
+      "speedAccuracy": location.position?.speedAccuracy ?? 0.0,
       "cityName": location.cityName,
     };
   }

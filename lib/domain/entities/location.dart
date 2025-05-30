@@ -1,7 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 
 class Location {
-  final Position position;
+  final Position? position;
   final String cityName;
 
   Location({

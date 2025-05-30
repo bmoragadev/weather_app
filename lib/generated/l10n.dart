@@ -123,6 +123,46 @@ class S {
       args: [],
     );
   }
+
+  /// `Real-time location permission denied.`
+  String get localization_off_error {
+    return Intl.message(
+      'Real-time location permission denied.',
+      name: 'localization_off_error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Internet connection.`
+  String get no_internet_error {
+    return Intl.message(
+      'No Internet connection.',
+      name: 'no_internet_error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No local weather data found.`
+  String get no_local_data_error {
+    return Intl.message(
+      'No local weather data found.',
+      name: 'no_local_data_error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open Settings`
+  String get open_settings_button {
+    return Intl.message(
+      'Open Settings',
+      name: 'open_settings_button',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -25,9 +25,13 @@ class PermissionNotifier extends StateNotifier<PermissionsState> {
     );
   }
 
+  void openSettings() {
+    openAppSettings();
+  }
+
   void _checkPermissionState(PermissionStatus status) {
     if (status == PermissionStatus.permanentlyDenied) {
-      openAppSettings();
+      openSettings();
     }
   }
 
