@@ -277,7 +277,7 @@ class _WeatherWeek extends ConsumerWidget {
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(vertical: 15.0),
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: 7,
+          itemCount: 3,
           itemBuilder: (context, index) {
             String currentDay = currentWeatherState.weatherData == null
                 ? ''

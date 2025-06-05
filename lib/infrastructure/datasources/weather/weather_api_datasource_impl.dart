@@ -17,7 +17,7 @@ class WeatherApiDatasourceImpl extends WeatherDatasource {
       final response = await dio.get('/forecast.json', queryParameters: {
         'key': dotenv.env["WEATHERAPI_KEY"],
         'q': '${location.position!.latitude},${location.position!.longitude}',
-        'days': 7,
+        'days': 3,
       });
 
       final data = response.data;
