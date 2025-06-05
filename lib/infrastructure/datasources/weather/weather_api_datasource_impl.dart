@@ -25,8 +25,9 @@ class WeatherApiDatasourceImpl extends WeatherDatasource {
       final current = CurrentWeatherMapper.fromJson(data['current']);
       final daily =
           DailyWeatherMapper.fromJson(data['forecast']['forecastday']);
+      final DateTime fetchTime = DateTime.parse(data['location']['localtime']);
 
-      return WeatherData(current: current, daily: daily);
+      return WeatherData(current: current, daily: daily, fetchTime: fetchTime);
     } catch (error) {
       throw Exception('Error fetching weather: $error');
     }

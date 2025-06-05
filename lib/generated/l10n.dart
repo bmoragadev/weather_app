@@ -163,6 +163,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Last update`
+  String get last_update_text {
+    return Intl.message(
+      'Last update',
+      name: 'last_update_text',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

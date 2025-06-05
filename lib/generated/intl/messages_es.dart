@@ -39,6 +39,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "drawer_temperature_unit": MessageLookupByLibrary.simpleMessage(
       "Unidad de Temperatura",
     ),
+    "last_update_text": MessageLookupByLibrary.simpleMessage(
+      "Última actualización",
+    ),
     "localization_off_error": MessageLookupByLibrary.simpleMessage(
       "Permiso de ubicación en tiempo real denegado.",
     ),

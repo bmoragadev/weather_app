@@ -10,5 +10,6 @@
     "localization_off_error":"Real-time location permission denied.",
     "no_internet_error":"No Internet connection.",
     "no_local_data_error":"No local weather data found.",
-    "open_settings_button":"Open Settings"
+    "open_settings_button":"Open Settings",
+    "last_update_text":"Last update"
 }

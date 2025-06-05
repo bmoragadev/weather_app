@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:miniweather/config/constants/error_codes.dart';
 import 'package:miniweather/config/constants/temp_unit.dart';
+import 'package:miniweather/config/helpers/formatter.dart';
 import 'package:miniweather/domain/entities/hourly_weather.dart';
 import 'package:miniweather/presentation/providers/permissions/permissions_provider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -124,7 +125,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     applicationName: S.current.app_name,
-                    applicationVersion: '1.2.2',
+                    applicationVersion: '1.3.2',
                     children: [
                       Text(S.current.about_text),
                       const SizedBox(height: 10),
@@ -172,13 +173,14 @@ class _HomeView extends ConsumerWidget {
 
 class _WeatherDetailInfo extends StatelessWidget {
   const _WeatherDetailInfo({required this.colors, required this.textStyles});
-  final colors;
-  final textStyles;
+  final ColorScheme colors;
+  final TextTheme textStyles;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        _LastFetchText(colors: colors, textStyles: textStyles),
         _WeatherOnDayByTime(
           colors: colors,
         ),
@@ -194,6 +196,39 @@ class _WeatherDetailInfo extends StatelessWidget {
           height: 20,
         ),
       ],
+    );
+  }
+}
+
+class _LastFetchText extends ConsumerWidget {
+  const _LastFetchText({required this.colors, required this.textStyles});
+  final ColorScheme colors;
+  final TextTheme textStyles;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentWeatherState = ref.watch(weatherProvider);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+
+    if (currentWeatherState.isLoading) {
+      return const SizedBox();
+    }
+
+    return FadeInDown(
+      from: 50,
+      child: Column(
+        children: [
+          Text(
+            S.current.last_update_text,
+            style: textStyles.bodySmall,
+          ),
+          Text(
+            Formatter.formatBasedOnLocale(
+                context, currentWeatherState.weatherData!.fetchTime),
+            style: textStyles.bodySmall,
+          )
+        ],
+      ),
     );
   }
 }

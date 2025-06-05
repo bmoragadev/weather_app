@@ -11,5 +11,6 @@
     "localization_off_error":"Permiso de ubicación en tiempo real denegado.",
     "no_internet_error":"Sin conexión a Internet.",
     "no_local_data_error":"No se encontraron datos meteorológicos locales.",
-    "open_settings_button":"Abrir configuración"
+    "open_settings_button":"Abrir configuración",
+    "last_update_text":"Última actualización"
 }

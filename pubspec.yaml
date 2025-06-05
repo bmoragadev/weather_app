@@ -4,7 +4,7 @@ description: "MiniWeather is a personal project developed in Flutter that
   The app also displays hourly forecasts and weather conditions for the next 7
   days, including minimum and maximum temperatures."
 publish_to: "none"
-version: 1.2.2+9
+version: 1.3.2+10
 
 environment:
   sdk: ">=3.4.3 <4.0.0"
