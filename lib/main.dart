@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky); // Para las screenshots!
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await dotenv.load(fileName: ".env");
   // await App.init();

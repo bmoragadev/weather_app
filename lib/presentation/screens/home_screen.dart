@@ -125,7 +125,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     applicationName: S.current.app_name,
-                    applicationVersion: '1.3.2',
+                    applicationVersion: '1.3.4',
                     children: [
                       Text(S.current.about_text),
                       const SizedBox(height: 10),

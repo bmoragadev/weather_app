@@ -23,7 +23,7 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "about_text": MessageLookupByLibrary.simpleMessage(
-      "MiniWeather es un proyecto personal desarrollado en Flutter que ofrece una interfaz sencilla y eficiente para consultar el clima actual. La aplicación también muestra pronósticos por hora y el estado del tiempo para los próximos 7 días, con detalles de temperatura mínima y máxima.",
+      "MiniWeather es un proyecto personal desarrollado en Flutter que ofrece una interfaz sencilla y eficiente para consultar el clima actual. La aplicación también muestra pronósticos por hora y el estado del tiempo para los próximos 3 días, con detalles de temperatura mínima y máxima.",
     ),
     "app_name": MessageLookupByLibrary.simpleMessage("MiniWeather"),
     "created_by": MessageLookupByLibrary.simpleMessage(

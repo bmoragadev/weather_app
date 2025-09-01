@@ -89,10 +89,10 @@ class S {
     );
   }
 
-  /// `MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.`
+  /// `MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 3 days, including minimum and maximum temperatures.`
   String get about_text {
     return Intl.message(
-      'MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 7 days, including minimum and maximum temperatures.',
+      'MiniWeather is a personal project developed in Flutter that provides a simple and efficient interface for checking the current weather. The app also displays hourly forecasts and weather conditions for the next 3 days, including minimum and maximum temperatures.',
       name: 'about_text',
       desc: '',
       args: [],
