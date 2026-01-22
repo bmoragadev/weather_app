@@ -76,7 +76,3 @@ El proyecto está organizado siguiendo Clean Architecture dentro de `lib/`:
 - `infrastructure`: Implementación de repositorios, datasources y mappers.
 - `presentation`: Pantallas (screens), widgets y proveedores de estado (providers).
 - `l10n`: Archivos de internacionalización.
-
-## Contribución
-
-Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request para mejoras o correcciones.
