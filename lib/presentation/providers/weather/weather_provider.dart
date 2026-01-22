@@ -102,13 +102,48 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         isLoading: false,
         weatherData: weatherData,
         currentLocation: location,
+        error: ErrorCode.none,
       );
       _lastRefresh = DateTime.now();
       await saveWeatherData();
     } on NetworkException {
-      state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
+      await loadLocalWeather();
+      if (state.weatherData == null) {
+        state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
+      }
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
+      await loadLocalWeather();
+      if (state.weatherData == null) {
+        state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
+      }
+    }
+  }
+
+  // ... (existing code for _findClosestTimeIndex etc. omitted for brevity, ensure start/end lines match correctly)
+
+  Future<void> refreshWeather() async {
+    final now = DateTime.now();
+    if (_lastRefresh != null && now.difference(_lastRefresh!).inMinutes < 60) {
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, error: ErrorCode.none);
+
+    // Skip explicit connectivity check, try to load and fallback to local if needed
+    await loadWeather();
+  }
+
+  Future<void> forceRefreshWeather() async {
+    _lastRefresh = null;
+    await refreshWeather();
+  }
+
+  Future<void> _loadTempUnit() async {
+    try {
+      TempUnit? tempUnitLoaded = await localStorageRepository.loadTempUnit();
+      state = state.copyWith(tempUnit: tempUnitLoaded ?? TempUnit.celsius);
+    } catch (e) {
+      state = state.copyWith(tempUnit: TempUnit.celsius);
     }
   }
 
@@ -188,43 +223,6 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     //       Location(position: currentPosition, cityName: currentCity!),
     // );
     return Location(position: currentPosition, cityName: currentCity!);
-  }
-
-  Future<void> refreshWeather() async {
-    final now = DateTime.now();
-    if (_lastRefresh != null && now.difference(_lastRefresh!).inMinutes < 60) {
-      return;
-    }
-
-    state = state.copyWith(isLoading: true, error: ErrorCode.none);
-
-    var connectivityResult = await connectivity.checkConnectivity();
-    final hasInternet = !connectivityResult.contains(ConnectivityResult.none);
-
-    if (!hasInternet) {
-      await loadLocalWeather();
-      if (state.error != ErrorCode.noLocalData) {
-        state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
-      }
-      return;
-    }
-
-    // state = state.copyWith(isLoading: true);
-    await loadWeather();
-  }
-
-  Future<void> forceRefreshWeather() async {
-    _lastRefresh = null;
-    await refreshWeather();
-  }
-
-  Future<void> _loadTempUnit() async {
-    try {
-      TempUnit? tempUnitLoaded = await localStorageRepository.loadTempUnit();
-      state = state.copyWith(tempUnit: tempUnitLoaded ?? TempUnit.celsius);
-    } catch (e) {
-      state = state.copyWith(tempUnit: TempUnit.celsius);
-    }
   }
 
   Future<void> setTempUnit(TempUnit tempUnit) async {
