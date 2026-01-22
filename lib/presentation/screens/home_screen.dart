@@ -392,7 +392,7 @@ class _WeatherWeek extends ConsumerWidget {
           itemBuilder: (context, index) {
             String currentDay = currentWeatherState.weatherData == null
                 ? ''
-                : DateFormat.E()
+                : DateFormat.E(Localizations.localeOf(context).toString())
                     .add_d()
                     .format(currentWeatherState.weatherData!.daily[index].date);
 
