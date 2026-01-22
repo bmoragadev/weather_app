@@ -31,6 +31,7 @@ class SharedpreferencesDatasourceImpl extends LocalStorageDatasource {
   Future<TempUnit?> loadTempUnit() async {
     try {
       String? tempUnitString = prefs.getString("tempUnit");
+      print('>>>> temUnitString = '+ tempUnitString!);
       TempUnit tempUnit;
       if (tempUnitString == 'TempUnit.fahrenheit') {
         tempUnit = TempUnit.fahrenheit;

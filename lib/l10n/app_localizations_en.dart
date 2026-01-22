@@ -46,5 +46,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get open_settings_button => 'Open Settings';
 
   @override
-  String get last_update_text => 'Last update';
+  String get last_update_text => 'Latest forecast';
+
+  @override
+  String get humidity => 'Humidity';
+
+  @override
+  String get wind => 'Wind';
+
+  @override
+  String get feels_like => 'Feels like';
+
+  @override
+  String get uv_index => 'UV Index';
 }

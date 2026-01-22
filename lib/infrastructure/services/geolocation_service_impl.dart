@@ -1,6 +1,7 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:miniweather/domain/services/geolocation_service.dart';
+import 'package:miniweather/config/errors/app_exception.dart';
 
 class GeolocationServiceImpl extends GeolocationService {
   // @override
@@ -30,9 +31,14 @@ class GeolocationServiceImpl extends GeolocationService {
 
   @override
   Future<Position> getCurrentPosition() async {
-    final currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    return currentPosition;
+    try {
+      final currentPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 5));
+      return currentPosition;
+    } catch (e) {
+      throw LocationException('Failed to get location: $e');
+    }
   }
 
   @override

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miniweather/config/constants/error_codes.dart';
@@ -8,20 +6,20 @@ import 'package:miniweather/domain/entities/weather_data.dart';
 import 'package:miniweather/domain/repositories/local_storage_repository.dart';
 import 'package:miniweather/presentation/providers/local_storage/local_storage_repository_provider.dart';
 import 'package:miniweather/domain/domain.dart';
+import 'package:miniweather/presentation/providers/permissions/geolocation_service_provider.dart';
 import 'package:miniweather/domain/services/geolocation_service.dart';
-// import 'package:miniweather/infrastructure/mappers/location_mapper.dart';
-import 'package:miniweather/infrastructure/services/geolocation_service_impl.dart';
 import 'package:miniweather/presentation/providers/weather/weather_repository_provider.dart';
+import 'package:miniweather/config/errors/app_exception.dart';
 
 final weatherProvider =
     StateNotifierProvider<WeatherNotifier, WeatherState>((ref) {
   final weatherRepository = ref.watch(weatherRepositoryProvider);
   final localStorageRepository = ref.watch(localStorageRepositoryProvider);
-  final geolocationServiceImpl = GeolocationServiceImpl();
+  final geolocationService = ref.watch(geolocationServiceProvider);
 
   return WeatherNotifier(
     weatherRepository: weatherRepository,
-    geolocationService: geolocationServiceImpl,
+    geolocationService: geolocationService,
     localStorageRepository: localStorageRepository,
   );
 });
@@ -30,14 +28,17 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
   final WeatherRepository weatherRepository;
   final GeolocationService geolocationService;
   final LocalStorageRepository localStorageRepository;
+  final Connectivity connectivity;
 
   DateTime? _lastRefresh;
 
   WeatherNotifier(
       {required this.weatherRepository,
       required this.geolocationService,
-      required this.localStorageRepository})
-      : super(WeatherState()) {
+      required this.localStorageRepository,
+      Connectivity? connectivity})
+      : connectivity = connectivity ?? Connectivity(),
+        super(WeatherState()) {
     _loadTempUnit();
     refreshWeather();
   }
@@ -83,7 +84,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
         tempUnit: tempUnit,
       );
     } catch (e) {
-      throw Exception(e);
+      state = state.copyWith(isLoading: false, error: ErrorCode.noLocalData);
     }
   }
 
@@ -104,8 +105,10 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
       );
       _lastRefresh = DateTime.now();
       await saveWeatherData();
+    } on NetworkException {
+      state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
     } catch (e) {
-      throw Exception(e);
+      state = state.copyWith(isLoading: false, error: ErrorCode.noInternet);
     }
   }
 
@@ -128,7 +131,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     if (state.weatherData == null ||
         state.weatherData!.daily.isEmpty ||
         state.weatherData!.daily[0].hourly.isEmpty) {
-      return 999;
+      return 0;
     }
     int index = getCurrentMinIndex();
     return state.weatherData!.daily[0].hourly[index].temperature.toInt();
@@ -148,7 +151,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
     if (state.weatherData == null ||
         state.weatherData!.daily.isEmpty ||
         state.weatherData!.daily[0].hourly.isEmpty) {
-      return 999;
+      return 0;
     }
     //int index = _findClosestTimeIndex(state.weather!.time);
     List<DateTime> time =
@@ -195,7 +198,7 @@ class WeatherNotifier extends StateNotifier<WeatherState> {
 
     state = state.copyWith(isLoading: true, error: ErrorCode.none);
 
-    var connectivityResult = await Connectivity().checkConnectivity();
+    var connectivityResult = await connectivity.checkConnectivity();
     final hasInternet = !connectivityResult.contains(ConnectivityResult.none);
 
     if (!hasInternet) {

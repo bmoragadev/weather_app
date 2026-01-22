@@ -12,7 +12,7 @@ import 'package:miniweather/presentation/providers/permissions/permissions_provi
 import 'package:shimmer/shimmer.dart';
 import 'package:miniweather/config/constants/weather_code_icons.dart';
 import 'package:miniweather/config/helpers/conversor.dart';
-import 'package:miniweather/generated/l10n.dart';
+import 'package:miniweather/l10n/app_localizations.dart';
 import 'package:miniweather/presentation/providers/weather/weather_provider.dart';
 import 'package:miniweather/presentation/widgets/custom_radial_gradient.dart';
 import 'package:miniweather/presentation/widgets/widgets.dart';
@@ -69,7 +69,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Spacer(),
-                    Text(S.current.drawer_config,
+                    Text(AppLocalizations.of(context)!.drawer_config,
                         style: textStyles.headlineMedium),
                   ],
                 )),
@@ -79,7 +79,7 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    S.current.drawer_temperature_unit,
+                    AppLocalizations.of(context)!.drawer_temperature_unit,
                     textAlign: TextAlign.start,
                     style: textStyles.bodyLarge,
                   ),
@@ -112,25 +112,38 @@ class HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const Divider(),
             ListTile(
-              title: Text(S.current.drawer_about_app),
+              leading:
+                  Icon(Icons.wb_sunny_outlined, color: colors.onSurfaceVariant),
+              title: Text(AppLocalizations.of(context)!.drawer_about_app,
+                  style: textStyles.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold)),
               onTap: () {
                 Navigator.of(context).pop();
                 showAboutDialog(
                     context: context,
-                    applicationIcon: ClipOval(
+                    applicationIcon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: colors.primaryContainer),
                       child: Image.asset(
                         'assets/imgs/icon.png',
-                        height: 64,
+                        height: 50,
                         fit: BoxFit.cover,
                       ),
                     ),
-                    applicationName: S.current.app_name,
-                    applicationVersion: '1.3.4',
+                    applicationName: AppLocalizations.of(context)!.app_name,
+                    applicationVersion: '1.3.6',
                     children: [
-                      Text(S.current.about_text),
+                      Text(AppLocalizations.of(context)!.about_text,
+                          style: textStyles.bodyMedium),
                       const SizedBox(height: 10),
-                      Text(S.current.created_by, style: textStyles.labelLarge),
-                      Text(S.current.made_in, style: textStyles.labelLarge),
+                      Text(AppLocalizations.of(context)!.created_by,
+                          style: textStyles.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.w600)),
+                      Text(AppLocalizations.of(context)!.made_in,
+                          style: textStyles.labelLarge
+                              ?.copyWith(fontWeight: FontWeight.w600)),
                     ]);
               },
             ),
@@ -184,6 +197,7 @@ class _WeatherDetailInfo extends StatelessWidget {
         _WeatherOnDayByTime(
           colors: colors,
         ),
+        //_ExtraMetricsGrid(colors: colors, textStyles: textStyles),
         _WeatherWeek(
           colors: colors,
           textStyle: textStyles,
@@ -191,11 +205,130 @@ class _WeatherDetailInfo extends StatelessWidget {
         const SizedBox(
           height: 10,
         ),
-        Text(S.current.data_from),
+        Text(AppLocalizations.of(context)!.data_from),
         const SizedBox(
           height: 20,
         ),
       ],
+    );
+  }
+}
+
+class _ExtraMetricsGrid extends ConsumerWidget {
+  const _ExtraMetricsGrid({required this.colors, required this.textStyles});
+  final ColorScheme colors;
+  final TextTheme textStyles;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentWeatherState = ref.watch(weatherProvider);
+    final weather = currentWeatherState.weatherData?.current;
+
+    if (weather == null) return const SizedBox();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: GlassContainer(
+        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                _MetricItem(
+                  label: AppLocalizations.of(context)!.feels_like,
+                  value: currentWeatherState.tempUnit == TempUnit.celsius
+                      ? '${weather.feelsLike.toInt()}°'
+                      : '${Conversor.celsiusToFahrenheit(weather.feelsLike).toInt()}°',
+                  icon: Icons.thermostat,
+                  colors: colors,
+                  textStyles: textStyles,
+                ),
+                _MetricItem(
+                  label: AppLocalizations.of(context)!.humidity,
+                  value: '${weather.humidity}%',
+                  icon: Icons.water_drop,
+                  colors: colors,
+                  textStyles: textStyles,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _MetricItem(
+                  label: AppLocalizations.of(context)!.wind,
+                  value: '${weather.windKph.toInt()} km/h',
+                  icon: Icons.air,
+                  colors: colors,
+                  textStyles: textStyles,
+                ),
+                _MetricItem(
+                  label: AppLocalizations.of(context)!.uv_index,
+                  value: '${weather.uv.toInt()}',
+                  icon: Icons.sunny,
+                  colors: colors,
+                  textStyles: textStyles,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricItem extends StatelessWidget {
+  const _MetricItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.colors,
+    required this.textStyles,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final ColorScheme colors;
+  final TextTheme textStyles;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colors.primary.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: colors.onPrimaryContainer, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: textStyles.labelMedium?.copyWith(
+                  color: colors.onSurface.withOpacity(0.8),
+                  fontWeight: FontWeight.w600, // Bolder Label
+                ),
+              ),
+              Text(
+                value,
+                style: textStyles.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800, // Much Bolder Value
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -219,7 +352,7 @@ class _LastFetchText extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            S.current.last_update_text,
+            AppLocalizations.of(context)!.last_update_text,
             style: textStyles.bodySmall,
           ),
           Text(
@@ -248,31 +381,9 @@ class _WeatherWeek extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 1.0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0.0, 0.2],
-            colors: [
-              colors.brightness == Brightness.light
-                  ? Colors.white
-                  : colors.primaryContainer,
-              colors.secondaryContainer,
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              offset: const Offset(0, 1),
-              color: colors.brightness == Brightness.light
-                  ? colors.secondary
-                  : Colors.transparent,
-              blurRadius: 0.5,
-            )
-          ],
-          color: colors.primaryContainer,
-        ),
+      child: GlassContainer(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 1.0),
         child: ListView.separated(
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(vertical: 15.0),
@@ -298,7 +409,8 @@ class _WeatherWeek extends ConsumerWidget {
                       : Expanded(
                           child: Text(
                             Strings.capitalize(currentDay),
-                            style: textStyle.labelLarge,
+                            style: textStyle.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
                   const Spacer(),
@@ -346,7 +458,11 @@ class _WeatherWeek extends ConsumerWidget {
                                     ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].minTemp).toInt()}°F'
                                     : '${currentWeatherState.weatherData!.daily[index].minTemp.toInt()}°C',
                                 //'${currentWeatherState.weatherDaily!.minTemperature[index].toInt()}${currentWeatherState.tempUnit == TempUnit.fahrenheit ? '°F' : '°C'}',
-                                style: textStyle.labelLarge,
+                                style: textStyle.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.brightness == Brightness.light
+                                        ? Colors.blueGrey.shade700
+                                        : Colors.blueGrey.shade100),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -377,7 +493,11 @@ class _WeatherWeek extends ConsumerWidget {
                                         TempUnit.fahrenheit
                                     ? '${Conversor.celsiusToFahrenheit(currentWeatherState.weatherData!.daily[index].maxTemp).toInt()}°F'
                                     : '${currentWeatherState.weatherData!.daily[index].maxTemp.toInt()}°C',
-                                style: textStyle.labelLarge,
+                                style: textStyle.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: colors.brightness == Brightness.light
+                                        ? Colors.orange.shade900
+                                        : Colors.orange.shade100),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -430,7 +550,7 @@ class _WeatherOnDayByTime extends ConsumerWidget {
         child: SizedBox(
             height: 160,
             child: Center(
-                child: LoadingAnimationWidget.prograssiveDots(
+                child: LoadingAnimationWidget.progressiveDots(
                     color: colors.primary, size: 48))),
       );
     }
@@ -486,32 +606,9 @@ class _WeatherDaySlide extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0.0, 0.7],
-            colors: [
-              colors.brightness == Brightness.light
-                  ? Colors.white
-                  : colors.primaryContainer,
-              colors.secondaryContainer
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              offset: const Offset(0, 1),
-              color: colors.brightness == Brightness.light
-                  ? colors.secondary
-                  : Colors.transparent,
-              blurRadius: 0.5,
-            )
-          ],
-          color: colors.primaryContainer,
-        ),
+      child: GlassContainer(
         width: 100,
+        height: 160,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -659,9 +756,11 @@ class _CurrentWeather extends ConsumerWidget {
                                     color: colors.primary, size: 32)
                                 : Text(
                                     currentWeatherState
-                                        .currentLocation!.cityName,
+                                            .currentLocation?.cityName ??
+                                        '',
                                     style: const TextStyle(
-                                      fontSize: 22,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                             icon: const Icon(Icons.location_on),
@@ -739,7 +838,7 @@ class ErrorWidget extends ConsumerWidget {
                   height: 20,
                 ),
                 Text(
-                  S.current.localization_off_error,
+                  AppLocalizations.of(context)!.localization_off_error,
                   style: textStyles.bodyLarge,
                 ),
                 const SizedBox(
@@ -749,7 +848,8 @@ class ErrorWidget extends ConsumerWidget {
                     onPressed: () {
                       ref.read(permissionsProvider.notifier).openSettings();
                     },
-                    child: Text(S.current.open_settings_button)),
+                    child: Text(
+                        AppLocalizations.of(context)!.open_settings_button)),
               ],
             ),
           ErrorCode.none => throw UnimplementedError(),
@@ -766,7 +866,7 @@ class ErrorWidget extends ConsumerWidget {
                   height: 20,
                 ),
                 Text(
-                  S.current.no_internet_error,
+                  AppLocalizations.of(context)!.no_internet_error,
                   style: textStyles.bodyLarge,
                 ),
               ],
@@ -786,7 +886,7 @@ class ErrorWidget extends ConsumerWidget {
                   height: 20,
                 ),
                 Text(
-                  S.current.no_local_data_error,
+                  AppLocalizations.of(context)!.no_local_data_error,
                   style: textStyles.bodyLarge,
                 ),
               ],

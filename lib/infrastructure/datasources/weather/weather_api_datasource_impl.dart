@@ -4,12 +4,16 @@ import 'package:miniweather/domain/domain.dart';
 import 'package:miniweather/domain/entities/weather_data.dart';
 import 'package:miniweather/infrastructure/mappers/current_weather_mapper.dart';
 import 'package:miniweather/infrastructure/mappers/daily_weather_mapper.dart';
+import 'package:miniweather/config/errors/app_exception.dart';
 
 class WeatherApiDatasourceImpl extends WeatherDatasource {
   late final Dio dio;
 
   WeatherApiDatasourceImpl()
-      : dio = Dio(BaseOptions(baseUrl: dotenv.env["WEATHERAPI_BASE_URL"]!));
+      : dio = Dio(BaseOptions(
+            baseUrl: dotenv.env["WEATHERAPI_BASE_URL"]!,
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 5)));
 
   @override
   Future<WeatherData> getWeatherData(Location location) async {
@@ -28,8 +32,17 @@ class WeatherApiDatasourceImpl extends WeatherDatasource {
       final DateTime fetchTime = DateTime.parse(data['location']['localtime']);
 
       return WeatherData(current: current, daily: daily, fetchTime: fetchTime);
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        throw NetworkException('No internet connection');
+      } else {
+        throw ServerException('Server error',
+            code: e.response?.statusCode?.toString());
+      }
     } catch (error) {
-      throw Exception('Error fetching weather: $error');
+      throw AppException('Error fetching weather: $error');
     }
   }
 }

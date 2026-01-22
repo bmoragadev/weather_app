@@ -173,8 +173,32 @@ abstract class AppLocalizations {
   /// No description provided for @last_update_text.
   ///
   /// In en, this message translates to:
-  /// **'Last update'**
+  /// **'Latest forecast'**
   String get last_update_text;
+
+  /// No description provided for @humidity.
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get humidity;
+
+  /// No description provided for @wind.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind'**
+  String get wind;
+
+  /// No description provided for @feels_like.
+  ///
+  /// In en, this message translates to:
+  /// **'Feels like'**
+  String get feels_like;
+
+  /// No description provided for @uv_index.
+  ///
+  /// In en, this message translates to:
+  /// **'UV Index'**
+  String get uv_index;
 }
 
 class _AppLocalizationsDelegate

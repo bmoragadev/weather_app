@@ -8,7 +8,7 @@ import 'package:miniweather/config/globals/globals.dart';
 import 'package:miniweather/config/router/app_router.dart';
 import 'package:miniweather/config/themes/app_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miniweather/generated/l10n.dart';
+import 'package:miniweather/l10n/app_localizations.dart';
 import 'package:miniweather/presentation/providers/app_state/app_state_provider.dart';
 import 'package:miniweather/presentation/providers/local_storage/local_storage_provider.dart';
 import 'package:miniweather/presentation/providers/permissions/permissions_provider.dart';
@@ -86,12 +86,12 @@ class MainAppState extends ConsumerState<MainApp> with WidgetsBindingObserver {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
-        S.delegate,
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: S.delegate.supportedLocales,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme().getLightTheme(),
       darkTheme: AppTheme().getDarkTheme(),
       themeMode: ThemeMode.system,
